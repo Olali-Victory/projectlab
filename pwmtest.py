@@ -11,7 +11,7 @@ def pwmtest(stop_event):
     pwm.start(0) #duty cyle 100%
 
 
-    while not stop_event.set():
+    while not stop_event.is_set():
         for duty in range(0, 101, 5):
             print(duty)
             pwm.ChangeDutyCycle(duty)

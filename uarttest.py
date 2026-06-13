@@ -1,22 +1,23 @@
 import serial
 import time
 
-ser = serial.Serial("/dev/ttyTHS1",9600,timeout=1)
-message = input()
+
+def uarttest(message):
+
+    ser = serial.Serial("/dev/ttyTHS1",9600,timeout=1)
 
 
-ser.write(message.encode())
-time.sleep(0.1)
+    ser.write(message.encode())
+    time.sleep(0.1)
 
-received = ser.readline()
+    received = ser.readline()
 
-print("Sent: ", message)
-print("Received: ", received.decode())
 
-if received.decode() == message:
-    print("UART LOOPBACK: PASS")
+    if received.decode() == message:
+        print("UART LOOPBACK: PASS")
 
-else:
-    print("UART LOOPBACK FAILED")
+    else:
+        print("UART LOOPBACK FAILED")
 
-ser.close()
+    ser.close()
+    return received.decode()

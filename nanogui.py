@@ -13,6 +13,7 @@ import threading
 from threading import Event
 import gpiotest
 import pwmtest
+import uarttest
 
 
 
@@ -34,6 +35,7 @@ class NanoGUI():
         self.buttonFrame = tk.Frame(self.root)
         self.gpioFrame = tk.Frame(self.root)
         self.pwmFrame = tk.Frame(self.root)
+        self.uartFrame = tk.Frame(self.root)
 
 
         # Frame and widgets for main window
@@ -44,7 +46,7 @@ class NanoGUI():
         self.gpiobutton = tk.Button(self.buttonFrame, text="Test GPIO",command=self.gpio_test, width=20, height=5)
         self.pwmbutton = tk.Button(self.buttonFrame, text="Test PWM",command=self.pwm_test, width=20, height=5)
         self.spibutton = tk.Button(self.buttonFrame, text="Test SPI", width=20, height=5)
-        self.uartbutton = tk.Button(self.buttonFrame, text="Test UART", width=20, height=5)
+        self.uartbutton = tk.Button(self.buttonFrame, text="Test UART", command=self.uart_test, width=20, height=5)
         self.i2cbutton = tk.Button(self.buttonFrame, text="Test I2C", width=20, height=5)
         self.i2sbutton = tk.Button(self.buttonFrame, text="Test I2S", width=20, height=5)
         self.cambutton = tk.Button(self.buttonFrame, text="Test CAMERA", width=20, height=5)
@@ -70,6 +72,20 @@ class NanoGUI():
         self.pwmlabel.pack(padx=20, pady=20)
         self.pbutton = tk.Button(self.pwmFrame, text="Back", command=self.back_button)
         self.pbutton.pack()
+
+        # widgets for uart frame
+        self.uartlabel = tk.Label(self.uartFrame, text="UART Echo", font=("Comic Sans MS", 18))
+        self.uartlabel.pack(padx=20, pady=20)
+        self.uarttextbox = tk.Text(self.uartFrame,
+                                   width = 30, height = 10, font=("Comic Sans MS", 12))
+        self.uarttextbox.pack()
+        self.send = tk.Button(self.uartFrame, text = "Send", command= self.uart_send)
+        self.ubutton = tk.Button(self.uartFrame, text = "Back", command=self.back_button)
+        self.received = tk.Text(self.uartFrame, width=30, height=10, font=("Comic Sans MS", 12))
+
+        self.send.pack(padx=20, pady=20)
+        self.ubutton.pack(padx=20, pady=20)
+        self.received.pack()
 
         #Load main screen and start the loop
         self.buttonFrame.pack()
@@ -100,14 +116,32 @@ class NanoGUI():
           )
 
           self.pwm_thread.start()
+
+    def uart_test(self):
+          self.buttonFrame.pack_forget()
+          self.uartFrame.pack()
+
+    def uart_send(self):
+          message = self.uarttextbox.get('1.0')
+          received = uarttest.uarttest(message)
+          self.received.insert('1.0', received)
+          
+
     #function for back button
     def back_button(self):
             self.stop_gpio_test.set()
             self.stop_pwm_test.set()
-
-            self.gpioFrame.pack_forget()
             self.pwmFrame.pack_forget()
+            self.gpioFrame.pack_forget()
+            self.uartFrame.pack_forget()
             self.buttonFrame.pack()
+
+            
+            
+
+            
+            
+            
 
     
 
