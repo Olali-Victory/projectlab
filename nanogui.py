@@ -15,6 +15,7 @@ import gpiotest
 import pwmtest
 import uarttest
 import serial
+from datetime import datetime
 
 
 
@@ -117,8 +118,9 @@ class NanoGUI():
 
 
         def add_log(self,message):
+                now = datetime.now()
                 self.logwarning.pack_forget()
-                self.logbox.insert("end", message + "\n")
+                self.logbox.insert("end", now.strftime("%Y-%m-%d %H:%M:%S") +" | "+message + "\n")
                 self.logbox.see("end")
         #function for gpio button
         def gpio_test(self):
