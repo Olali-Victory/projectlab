@@ -14,6 +14,7 @@ from threading import Event
 import gpiotest
 import pwmtest
 import uarttest
+import cam
 import serial
 from datetime import datetime
 
@@ -24,6 +25,7 @@ class NanoGUI():
                 #events to stop functions from other files
                 self.stop_gpio_test = Event()
                 self.stop_pwm_test = Event()
+                self.stop_cam_test = Event()
 
                 #Main Window
                 self.root = tk.Tk()
@@ -39,6 +41,7 @@ class NanoGUI():
                 self.gpioFrame = tk.Frame(self.root, bg='black')
                 self.pwmFrame = tk.Frame(self.root, bg='black')
                 self.uartFrame = tk.Frame(self.root, bg='black')
+                self.camFrame = tk.Frame(self.root, bg='black')
 
 
                 # Frame and widgets for main window
@@ -49,7 +52,7 @@ class NanoGUI():
                 self.uartbutton = tk.Button(self.buttonFrame, text="Test UART", command=self.uart_test, width=30, height=2,bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
                 self.i2cbutton = tk.Button(self.buttonFrame, text="Test I2C", width=30, height=2,bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
                 self.i2sbutton = tk.Button(self.buttonFrame, text="Test I2S", width=30, height=2,bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
-                self.cambutton = tk.Button(self.buttonFrame, text="Test CAMERA", width=30, height=2,bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
+                self.cambutton = tk.Button(self.buttonFrame, text="Test CAMERA", command=self.cam_test,width=30, height=2,bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
 
                 
 
@@ -110,6 +113,20 @@ class NanoGUI():
                 self.send.pack(padx=20, pady=20)
                 self.ubutton.pack(padx=20, pady=20)
                 self.received.pack(fill="both")
+
+                #widgets for CAM frame
+                self.camlabel = tk.Label(self.camFrame, text =  "CAM Test", font=("Comic Sans MS", 18), bg='black', fg='white')
+                self.camlabel.pack(padx=20, pady=20)
+                self.caminstructions = tk.Label(self.camFrame, text =  "Pick which camera to test and see your beautiul smile", font=("Comic Sans MS", 12), bg='black', fg='white')
+                self.caminstructions.pack(padx=20, pady=20)
+                self.cam1button = tk.Button(self.camFrame, text = "Test CAM 1", command=self.cam1_test, bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
+                self.cam1button.pack(padx=20, pady=20)
+                self.cam2button = tk.Button(self.camFrame, text = "Test CAM 2", bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
+                self.cam2button.pack(padx=20, pady=20)
+                self.cbutton = tk.Button(self.camFrame, text = "Back", command=self.cam_button, bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
+                self.cbutton.pack(padx=20, pady=20)
+
+
 
                 #Load main screen and start the loop
                 self.logFrame.place(x=400, y=100)
@@ -173,6 +190,21 @@ class NanoGUI():
                 except (PermissionError, serial.serialutil.SerialException) as e:
                         self.add_log("UART Test: FAIL")
                         self.add_log(f"{e} errors occured, please restart the software with Admin permissions")
+
+        def cam_test(self):
+                self.buttonFrame.place_forget()
+                self.logFrame.place_forget()
+                self.camFrame.pack()
+
+        def cam1_test(self):
+                self.stop_cam_test.clear()
+                self.cam_thread = threading.Thread(
+                        target=cam.camtest,
+                        args=(self.stop_cam_test,),
+                        daemon=True
+                )
+                self.add_log("CAM 1 Test Starting...")
+                self.cam_thread.start()
                 
                 
 
@@ -217,6 +249,23 @@ class NanoGUI():
                 self.uartFrame.pack_forget()
                 self.buttonFrame.place(x=100, y=100)
                 self.logFrame.place(x=400, y=100)
+
+        def cam_button(self):
+                self.stop_gpio_test.set()
+                self.stop_pwm_test.set()
+                self.stop_cam_test.set()
+                self.pwmFrame.pack_forget()
+                self.gpioFrame.pack_forget()
+                self.camFrame.pack_forget()
+                self.uarttextbox.delete('1.0','end')
+                self.received.delete('1.0','end')
+                self.uartFrame.pack_forget()
+                self.buttonFrame.place(x=100, y=100)
+                self.logFrame.place(x=400, y=100)
+                """if self.gvar.get() == 1:
+                        self.add_log("GPIO Test: PASS")
+                else:
+                        self.add_log("GPIO Test: FAIL")"""
 
         def getlogs(self):
                 try:
