@@ -4,7 +4,7 @@ status = True
 def camtest(stop_event):
     global status
     pipeline = (
-        "nvarguscamerasrc sensor-id=0 ! "
+        "nvarguscamerasrc sensor-id=1 ! "
         "video/x-raw(memory:NVMM), width=1280, height=720,"
         "framerate=30/1, format=NV12 ! "
         "nvvidconv flip-method=0 ! "
@@ -24,11 +24,11 @@ def camtest(stop_event):
     while not stop_event.is_set():
         ret, frame = cap.read()
         if not ret:
-            print("FAILED")
+            print("FAILED 2")
             status = False
             break
 
-        cv2.imshow("Jetson Nano CSI Camera 1", frame)
+        cv2.imshow("Jetson Nano CSI Camera 2", frame)
 
         if cv2.waitKey(1) == ord('q'):
             break
