@@ -1,8 +1,5 @@
-#!/bin/bash
-# ============================================================
-# I2S OUTPUT TEST -- Jetson Nano -> PCM5102A I2S DAC
-#
-# WIRING (DAC board -> Jetson 40-pin header)
+
+# WIRING 
 #   DAC VIN  -> Pin 2 or 4     (5V; board accepts 3.3-5V)
 #   DAC GND  -> Pin 39         (GND)
 #   DAC BCK  -> Pin 12         (i2s4b_sclk)
@@ -10,18 +7,9 @@
 #   DAC DIN  -> Pin 40         (i2s4b_dout)   NOT pin 38
 #   DAC SCK  -> GND            (lets the DAC self-clock)
 #   DAC XSMT -> 3.3V           (LOW = muted, must be HIGH)
-#   DAC FMT / FLT / DEMP -> GND or left at board defaults
+#   DAC FMT / FLT / DEMP -> GND 
 #
 #   Plug earbuds or a speaker into the DAC's 3.5mm jack.
-#
-# On success this script is quiet: it prints the playback notice
-# and the result. Setup detail is printed only for the step that
-# actually fails.
-#
-# STDOUT CONTRACT (parsed by nanogui_windows_V6.py):
-#   "I2S PLAYBACK: COMPLETE"  printed only when aplay succeeds
-# ============================================================
-
 CARD="tegrasndt210ref"
 TONE="/tmp/dac_testtone.wav"
 
