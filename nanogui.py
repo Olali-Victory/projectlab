@@ -11,14 +11,15 @@ CAMERA PORT
 import tkinter as tk
 import threading
 from threading import Event
-import gpiotest
-import pwmtest
+import gpiotest_1
+import pwmtest_1
 import uarttest
 import cam
 import cam1
 import serial
 from datetime import datetime
 import time
+import subprocess
 
 
 
@@ -44,6 +45,8 @@ class NanoGUI():
                 self.pwmFrame = tk.Frame(self.root, bg='black')
                 self.uartFrame = tk.Frame(self.root, bg='black')
                 self.camFrame = tk.Frame(self.root, bg='black')
+                self.i2sFrame = tk.Frame(self.root, bg="black")
+                self.usbFrame = tk.Frame(self.root, bg="black")
 
 
                 # Frame and widgets for main window
@@ -53,10 +56,9 @@ class NanoGUI():
                 self.spibutton = tk.Button(self.buttonFrame, text="Test SPI", width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
                 self.uartbutton = tk.Button(self.buttonFrame, text="Test UART", command=self.uart_test, width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
                 self.i2cbutton = tk.Button(self.buttonFrame, text="Test I2C", width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
-                self.i2sbutton = tk.Button(self.buttonFrame, text="Test I2S", width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
+                self.i2sbutton = tk.Button(self.buttonFrame, text="Test I2S", command=self.i2s_test,width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
                 self.cambutton = tk.Button(self.buttonFrame, text="Test CAMERA", command=self.cam_test,width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
-
-                
+               #self.usbbutton = tk.Button(self.buttonFrame, text="Test USB PORTS", command=self.usb_test,width=30, height=2,bg='grey', fg='white', border=0, relief='flat', highlightthickness=0)
 
                 self.gpiobutton.pack(pady=20)
                 self.pwmbutton.pack(pady=20)
@@ -65,7 +67,8 @@ class NanoGUI():
                 self.i2cbutton.pack(pady=20)
                 self.i2sbutton.pack(pady=20)
                 self.cambutton.pack(pady=20)
-
+                #self.usbbutton.pack(pady=20)
+        
                 self.logFrame = tk.Frame(self.root, bg='black')
                 self.loglabel = tk.Label(self.logFrame, text = 'Test Log', font=('Arial', 18, 'bold'),bg='black', fg='white')
                 self.loglabel.pack()
@@ -128,7 +131,23 @@ class NanoGUI():
                 self.cbutton = tk.Button(self.camFrame, text = "Back", command=self.cam_button, bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
                 self.cbutton.pack(padx=20, pady=20)
 
+                #widgets for i2s frame
+                self.i2slabel = tk.Label(self.i2sFrame, text = "I2S Test", font=("Comic Sans MS", 18), bg='black', fg='white')
+                self.i2slabel.pack(padx=20, pady=20)
+                self.i2sinstructions = tk.Label(self.i2sFrame, text =  "A 440Hz tone was just played.", font=("Comic Sans MS", 12), bg='black', fg='white')
+                self.i2sinstructions.pack(padx=20, pady=20)
+                self.i2svar = tk.IntVar()
+                self.i2scheckbox = tk.Checkbutton(self.i2sFrame, text="Did you hear the tone?", variable = self.i2svar, font=("Comic Sans MS", 12),bg ='black', fg='white', selectcolor="black",highlightthickness=0)
+                self.i2scheckbox.pack(padx=10, pady=10)
+                self.warning = tk.Label(self.i2sFrame, text="Make sure to click the checkbox if you hear it",
+                                        font=("Comic Sans MS", 10), bg='black', fg="red")
+                self.warning.pack()
+                self.ibutton = tk.Button(self.i2sFrame, text = "Back",command=self.i2s_button, bg='green', fg='white', border=0, relief='flat', highlightthickness=0)
+                self.ibutton.pack(padx=20, pady=20)
 
+                #widgets for USB frame
+                self.usblabel = tk.Label(self.usbFrame, text = "USB Port Test", font=("Comic Sans MS", 18), bg='black', fg='white')
+                self.usblabel.pack(padx=20, pady=20)
 
                 #Load main screen and start the loop
                 self.logFrame.place(x=400, y=100)
@@ -149,7 +168,7 @@ class NanoGUI():
 
                 self.stop_gpio_test.clear()
                 self.gpio_thread = threading.Thread(
-                        target=gpiotest.gpiotest,
+                        target=gpiotest_1.gpiotest,
                         args=(self.stop_gpio_test,),
                         daemon=True
                 )
@@ -165,7 +184,7 @@ class NanoGUI():
 
                 self.stop_pwm_test.clear()
                 self.pwm_thread = threading.Thread(
-                        target=pwmtest.pwmtest,
+                        target=pwmtest_1.pwmtest,
                         args=(self.stop_pwm_test,),
                         daemon=True
                 )
@@ -234,6 +253,15 @@ class NanoGUI():
                 else:
                         self.add_log("CAM 2 TEST: FAIL")
                         self.cam2button.configure(background='red')
+
+        def i2s_test(self):
+                self.buttonFrame.place_forget()
+                self.logFrame.place_forget()
+                self.i2sFrame.pack()
+                self.add_log("I2S Test Starting...")
+                password="group7\n"
+                subprocess.run(["sudo","busybox", "devmem", "0x6000d204", "32", "0"], input=password, universal_newlines=True,)
+                subprocess.run(["sudo", "./I2S_test.sh"])
                 
                 
 
@@ -243,6 +271,8 @@ class NanoGUI():
                 self.stop_pwm_test.set()
                 self.pwmFrame.pack_forget()
                 self.gpioFrame.pack_forget()
+                self.camFrame.pack_forget()
+                self.i2sFrame.pack_forget()
                 self.uarttextbox.delete('1.0','end')
                 self.received.delete('1.0','end')
                 self.uartFrame.pack_forget()
@@ -260,6 +290,8 @@ class NanoGUI():
                 self.stop_pwm_test.set()
                 self.pwmFrame.pack_forget()
                 self.gpioFrame.pack_forget()
+                self.camFrame.pack_forget()
+                self.i2sFrame.pack_forget()
                 self.uarttextbox.delete('1.0','end')
                 self.received.delete('1.0','end')
                 self.uartFrame.pack_forget()
@@ -277,6 +309,8 @@ class NanoGUI():
                 self.stop_pwm_test.set()
                 self.pwmFrame.pack_forget()
                 self.gpioFrame.pack_forget()
+                self.camFrame.pack_forget()
+                self.i2sFrame.pack_forget()
                 self.uarttextbox.delete('1.0','end')
                 self.received.delete('1.0','end')
                 self.uartFrame.pack_forget()
@@ -290,6 +324,7 @@ class NanoGUI():
                 self.pwmFrame.pack_forget()
                 self.gpioFrame.pack_forget()
                 self.camFrame.pack_forget()
+                self.i2sFrame.pack_forget()
                 self.uarttextbox.delete('1.0','end')
                 self.received.delete('1.0','end')
                 self.uartFrame.pack_forget()
@@ -308,6 +343,27 @@ class NanoGUI():
                 else:
                         
                         self.cambutton.configure(background='red')
+
+        def i2s_button(self):
+                self.stop_gpio_test.set()
+                self.stop_pwm_test.set()
+                self.stop_cam_test.set()
+                self.pwmFrame.pack_forget()
+                self.gpioFrame.pack_forget()
+                self.camFrame.pack_forget()
+                self.i2sFrame.pack_forget()
+                self.uarttextbox.delete('1.0','end')
+                self.received.delete('1.0','end')
+                self.uartFrame.pack_forget()
+                self.buttonFrame.place(x=100, y=100)
+                self.logFrame.place(x=400, y=100)
+                if self.i2svar.get() == 1:
+                        self.add_log("I2S Test: PASS")
+                        self.i2sbutton.configure(background='green')
+                else:
+                        self.add_log("I2S Test: FAIL")
+                        self.i2sbutton.configure(background='red')
+
 
         def getlogs(self):
                 try:
