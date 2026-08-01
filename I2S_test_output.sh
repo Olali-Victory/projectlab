@@ -1,5 +1,8 @@
-
-# WIRING 
+#!/bin/bash
+# ============================================================
+# I2S OUTPUT TEST -- Jetson Nano -> PCM5102A I2S DAC
+#
+# WIRING (DAC board -> Jetson 40-pin header)
 #   DAC VIN  -> Pin 2 or 4     (5V; board accepts 3.3-5V)
 #   DAC GND  -> Pin 39         (GND)
 #   DAC BCK  -> Pin 12         (i2s4b_sclk)
@@ -7,9 +10,18 @@
 #   DAC DIN  -> Pin 40         (i2s4b_dout)   NOT pin 38
 #   DAC SCK  -> GND            (lets the DAC self-clock)
 #   DAC XSMT -> 3.3V           (LOW = muted, must be HIGH)
-#   DAC FMT / FLT / DEMP -> GND 
+#   DAC FMT / FLT / DEMP -> GND or left at board defaults
 #
 #   Plug earbuds or a speaker into the DAC's 3.5mm jack.
+#
+# On success this script is quiet: it prints the playback notice
+# and the result. Setup detail is printed only for the step that
+# actually fails.
+#
+# STDOUT CONTRACT (parsed by nanogui_windows_V11.py):
+#   "I2S PLAYBACK: COMPLETE"  printed only when aplay succeeds
+# ============================================================
+
 CARD="tegrasndt210ref"
 TONE="/tmp/dac_testtone.wav"
 
@@ -26,12 +38,25 @@ fail() {
     exit 1
 }
 
-ERR=$(busybox devmem 0x6000d204 32 0 2>&1)
-if [ $? -ne 0 ]; then
-    fail "Step 0 - pinmux fix, switch I2S4 pins from GPIO to SFIO" \
-         "$ERR" \
-         "Command was: busybox devmem 0x6000d204 32 0" \
-         "Check that busybox is installed and this ran as root."
+# Read-modify-write: only the four I2S4 bits (PJ4-PJ7 = pins 35/38/40/12)
+# are cleared, so PJ0-PJ3 keep whatever mode they were in. If the register
+# cannot be read at all we bail out rather than blind-writing the whole
+# port, which would drag unrelated pads into SFIO.
+CNF=$(busybox devmem 0x6000d204 2>/dev/null)
+if [ -z "$CNF" ]; then
+    fail "Step 0 - read the I2S4 pinmux register" \
+         "Could not read 0x6000d204 - no value came back." \
+         "Check that busybox is installed and that this ran as root."
+elif [ $(( CNF & 0xf0 )) -ne 0 ]; then
+    WANT=$(( CNF & ~0xf0 ))
+    ERR=$(busybox devmem 0x6000d204 32 $WANT 2>&1)
+    if [ $? -ne 0 ]; then
+        fail "Step 0 - pinmux fix, switch I2S4 pins from GPIO to SFIO" \
+             "$ERR" \
+             "Command was: busybox devmem 0x6000d204 32 $WANT" \
+             "Register read back as $CNF before the write." \
+             "Check that busybox is installed and that this ran as root."
+    fi
 fi
 
 ERR=$(amixer -c $CARD cset name='I2S4 Mux' 'ADMAIF1' 2>&1)
