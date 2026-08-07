@@ -7,17 +7,17 @@ What goes where
 
 FINAL_VERSION_SSH
 
-  The windows host application/computer
+    The windows host application/computer
 
-  Keep the files together in the same directory 
+    Keep the files together in the same directory 
 
 DEMO_NANO_CODE
 
-  The Jetson Nano 
+    The Jetson Nano 
 
-  file directory == /home/ <"username">/Documents/projectlab
+    file directory == /home/ <"username">/Documents/projectlab
 
-  "username" is whatever the username is for your specific nano. For ours, it is group7 Or group72 depending on which nano you are using 
+    "username" is whatever the username is for your specific nano. For ours, it is group7 Or group72 depending on which nano you are using 
 
 
   JETSON SETUP
