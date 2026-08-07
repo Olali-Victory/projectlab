@@ -1,7 +1,8 @@
 Jetson Nano Remote Test Bench 
 
 Contained within the Final_Version_SSH file is a windows py file that validates the hardware interfaces on the 40-pin expansion header of the Jetson Nano Developer Kit over SSH. 
-The Windows side runs the interface, the sequencing, and the result tracking. The Jetson holds one small script per interface. 
+The Windows side runs the interface, the sequencing, and the result tracking. The Jetson holds one small script per interface. The easiest place to run these tests and set them up 
+is in the computer lab in the ECE building, as there is easy access to an ethernet port, and external keyboards and monitors
 
 What goes where
 
@@ -32,6 +33,8 @@ DEMO_NANO_CODE
 
     install.sh installs system packages, Python packages, and other configurations that are required to run tests that would otherwise have to be done by hand 
 
+    run hostname -I and write down the IP address displayed and keep it handy 
+    
     Run sudo /opt/nvidia/jetson-io/jetson-io.py   
 
     Select configure pin header and manually configure pins. 
@@ -39,6 +42,8 @@ DEMO_NANO_CODE
     enable the i2s4, pwm0, pm2, uart, and spi funtionality
 
     save changes and reboot
+
+    
 
   WINDOWS SETUP
 
@@ -55,6 +60,11 @@ DEMO_NANO_CODE
     JETSON_PASSWORD = "group7"
 
     REMOTE_TEST_DIR = "/home/group7/Documents/projectlab" OR "/home/{JETSON_USERNAME}/Documents/projectlab if you don't want to change the username in two locations 
+
+    replace the JETSON_IP with the IP address you acquired when running "hostname -I" on the Jetson. 
+
+    Make sure the JETSON is connected via Ethernet cable to an Ethernet port and that the windows device is on the same network. EX. ttunet
+    
 
 
   Eight files within DEMO_NANO_CODE/ are called by the windows application. 
